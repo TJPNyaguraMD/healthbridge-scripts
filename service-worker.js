@@ -1,63 +1,55 @@
-/* Healthbridge Rx – Service Worker
-   Caches the entire app for offline use on Android.
-   Update CACHE_VERSION when deploying a new release. */
+/* Healthbridge Rx – Service Worker v3
+   Caches the full app for offline use on Android.
+   Update CACHE_VERSION when pushing a new release. */
 
-var CACHE_VERSION = 'hb-rx-v2';
+var CACHE_VERSION = 'hb-rx-v3';
+var BASE = '/healthbridge-rx';
 var ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-72x72.png',
-  './icons/icon-96x96.png',
-  './icons/icon-128x128.png',
-  './icons/icon-144x144.png',
-  './icons/icon-152x152.png',
-  './icons/icon-192x192.png',
-  './icons/icon-384x384.png',
-  './icons/icon-512x512.png'
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-72x72.png',
+  BASE + '/icons/icon-96x96.png',
+  BASE + '/icons/icon-128x128.png',
+  BASE + '/icons/icon-144x144.png',
+  BASE + '/icons/icon-152x152.png',
+  BASE + '/icons/icon-192x192.png',
+  BASE + '/icons/icon-384x384.png',
+  BASE + '/icons/icon-512x512.png'
 ];
 
-/* Install: cache all assets */
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then(function(cache) {
-      return cache.addAll(ASSETS);
-    }).then(function() {
-      return self.skipWaiting();
-    })
+self.addEventListener('install', function (e) {
+  e.waitUntil(
+    caches.open(CACHE_VERSION)
+      .then(function (cache) { return cache.addAll(ASSETS); })
+      .then(function () { return self.skipWaiting(); })
   );
 });
 
-/* Activate: delete old caches */
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    caches.keys().then(function(keys) {
+self.addEventListener('activate', function (e) {
+  e.waitUntil(
+    caches.keys().then(function (keys) {
       return Promise.all(
-        keys.filter(function(k) { return k !== CACHE_VERSION; })
-            .map(function(k)   { return caches.delete(k); })
+        keys.filter(function (k) { return k !== CACHE_VERSION; })
+            .map(function (k)   { return caches.delete(k); })
       );
-    }).then(function() {
-      return self.clients.claim();
-    })
+    }).then(function () { return self.clients.claim(); })
   );
 });
 
-/* Fetch: serve from cache, fall back to network */
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      return cached || fetch(event.request).then(function(response) {
-        // Cache successful GET responses dynamically
-        if (event.request.method === 'GET' && response.status === 200) {
+self.addEventListener('fetch', function (e) {
+  e.respondWith(
+    caches.match(e.request).then(function (cached) {
+      return cached || fetch(e.request).then(function (response) {
+        if (e.request.method === 'GET' && response.status === 200) {
           var clone = response.clone();
-          caches.open(CACHE_VERSION).then(function(cache) {
-            cache.put(event.request, clone);
+          caches.open(CACHE_VERSION).then(function (cache) {
+            cache.put(e.request, clone);
           });
         }
         return response;
-      }).catch(function() {
-        // Offline fallback – return cached index
-        return caches.match('./index.html');
+      }).catch(function () {
+        return caches.match(BASE + '/index.html');
       });
     })
   );
