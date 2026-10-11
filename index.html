@@ -1006,9 +1006,12 @@ function dlPDF(){
   doc.text("Print Date: "+d.ts,pw/2,fy+17,{align:"center"});
   doc.text("Page 1 of 1",pw/2,fy+21.5,{align:"center"});
 
-  // Signature image — placed above the doctor footer line
+  // Signature image — bottom edge sits ON the signature line
   var sigUrl=getSigDataUrl();
-  if(sigUrl){try{doc.addImage(sigUrl,'PNG',ml,fy-18,50,16);}catch(e){ console.warn('sig err',e); }}
+  if(sigUrl){
+    var sigH=16, sigW=40;
+    try{doc.addImage(sigUrl,'PNG',ml,fy-sigH,sigW,sigH);}catch(e){ console.warn('sig err',e); }
+  }
 
   var sn=(d.patName||"Patient").replace(/\s+/g,"_");
   doc.save("Rx"+d.rx+"_"+sn+"_"+d.date+".pdf");
