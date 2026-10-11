@@ -1181,18 +1181,26 @@ function getHistory(){try{return JSON.parse(localStorage.getItem(RX_HISTORY_KEY)
 function saveToHistory(d,meds){
   try{
     var hist=getHistory();
-    // Store full prescription state for re-use feature
+    var fullClone={};
+    try{fullClone=JSON.parse(JSON.stringify(d));}catch(ce){console.warn('saveToHistory clone err',ce);}
     hist.unshift({
       rx:d.rx||'',pat:d.patName||'',date:d.date||'',
       ts:new Date().toISOString(),
       meds:meds.map(function(m){return m.name;}).join(', '),
       aid:d.medAid||'',
-      _full:JSON.parse(JSON.stringify(d))  // deep clone of all form data
+      _full:fullClone
     });
     if(hist.length>200)hist=hist.slice(0,200);
     localStorage.setItem(RX_HISTORY_KEY,JSON.stringify(hist));
     updateHistBadge();
-  }catch(e){}
+    // Auto-advance Rx number for next prescription
+    var nextRx=(parseInt(d.rx)||0)+1;
+    var rxEl=document.getElementById('rxNumber');
+    var rxDispEl=document.getElementById('rxDisp');
+    if(rxEl){rxEl.value=nextRx;}
+    if(rxDispEl){rxDispEl.textContent=nextRx;}
+    console.log('Saved Rx'+d.rx+' to history. Next Rx: '+nextRx);
+  }catch(e){console.error('saveToHistory failed:',e);}
 }
 function updateHistBadge(){
   try{

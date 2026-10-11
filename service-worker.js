@@ -2,7 +2,7 @@
    Caches the full app for offline use on Android.
    Update CACHE_VERSION when pushing a new release. */
 
-var CACHE_VERSION = 'hb-rx-v3';
+var CACHE_VERSION = 'hb-rx-v4';
 var BASE = '/healthbridge-scripts';
 var ASSETS = [
   BASE + '/',
