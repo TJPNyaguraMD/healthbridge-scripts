@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="HB Rx"/>
 <meta name="application-name" content="Healthbridge Rx"/>
 <meta name="theme-color" content="#1B3A6B"/>
-<link rel="manifest" href="/healthbridge-rx/manifest.json"/>
+<link rel="manifest" href="/healthbridge-scripts/manifest.json"/>
 <link rel="apple-touch-icon" href="icons/icon-192x192.png"/>
 
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
@@ -1006,9 +1006,9 @@ function dlPDF(){
   doc.text("Print Date: "+d.ts,pw/2,fy+17,{align:"center"});
   doc.text("Page 1 of 1",pw/2,fy+21.5,{align:"center"});
 
-  // Signature image
+  // Signature image — placed above the doctor footer line
   var sigUrl=getSigDataUrl();
-  if(sigUrl){try{doc.addImage(sigUrl,'PNG',ml,ph-42,35,15);}catch(e){}}
+  if(sigUrl){try{doc.addImage(sigUrl,'PNG',ml,fy-18,50,16);}catch(e){ console.warn('sig err',e); }}
 
   var sn=(d.patName||"Patient").replace(/\s+/g,"_");
   doc.save("Rx"+d.rx+"_"+sn+"_"+d.date+".pdf");
@@ -1110,11 +1110,14 @@ function clearSig() {
 
 function getSigDataUrl() {
   if (sigMode === 'none') return null;
-  // Prefer canvas content (may have restored saved sig)
   var c = document.getElementById('sigCanvas');
   if (c) {
-    var blank = document.createElement('canvas'); blank.width=c.width; blank.height=c.height;
-    if (c.toDataURL() !== blank.toDataURL()) return c.toDataURL('image/png');
+    // Check if canvas has any drawn pixels (non-transparent)
+    var ctx = c.getContext('2d');
+    var data = ctx.getImageData(0, 0, c.width, c.height).data;
+    var hasPixels = false;
+    for (var i = 3; i < data.length; i += 4) { if (data[i] > 10) { hasPixels = true; break; } }
+    if (hasPixels) return c.toDataURL('image/png');
   }
   if (sigMode === 'upload') return sigUploadDataUrl;
   return null;
@@ -1350,7 +1353,7 @@ function showToast(msg){
 // ── Service Worker ────────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/healthbridge-rx/service-worker.js', {scope: '/healthbridge-rx/'})
+    navigator.serviceWorker.register('/healthbridge-scripts/service-worker.js', {scope: '/healthbridge-scripts/'})
       .then(function (reg) { console.log('SW registered:', reg.scope); })
       .catch(function (err) { console.warn('SW failed:', err); });
   });

@@ -3,7 +3,7 @@
    Update CACHE_VERSION when pushing a new release. */
 
 var CACHE_VERSION = 'hb-rx-v3';
-var BASE = '/healthbridge-rx';
+var BASE = '/healthbridge-scripts';
 var ASSETS = [
   BASE + '/',
   BASE + '/index.html',
